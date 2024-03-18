@@ -17,6 +17,15 @@ internal static class CommandParser
         GenericConverter = methods.FirstOrDefault(xm => xm is { Name: nameof(ConvertArgument), ContainsGenericParameters: true, IsStatic: true, IsPrivate: true });
     }
     
+    /// <summary>
+    /// Парсинг параметров команды
+    /// </summary>
+    /// <param name="methodInfo">Метод команды</param>
+    /// <param name="command">Строка команды</param>
+    /// <param name="message">Сообщение для передачи в метод</param>
+    /// <param name="vkApi">VkApi для передачи в метод</param>
+    /// <returns>Массив параметров метода</returns>
+    /// <exception cref="NoParameterConverterException">Если на тип в методе нет конвертора</exception>
     internal static object[]? GetCommandParameters(MethodInfo methodInfo, string command, Message message, IVkApi vkApi)
     {
         var parameters = methodInfo.GetParameters();
@@ -71,6 +80,14 @@ internal static class CommandParser
                throw new ArgumentException("Could not convert specified value to given type", nameof(value));
     }
 
+    /// <summary>
+    /// Конвертация аргумента
+    /// </summary>
+    /// <param name="value">Аргумент</param>
+    /// <param name="type">Тип, в который надо преобразовать</param>
+    /// <returns>Преобразованный аргумент</returns>
+    /// <exception cref="ArgumentException">Если не удалось сконвертировать</exception>
+    /// <exception cref="Exception">Если не удалось сконвертировать</exception>
     private static object ConvertArgument(string value, Type type)
     {
         var convertMethod = GenericConverter?.MakeGenericMethod(type);

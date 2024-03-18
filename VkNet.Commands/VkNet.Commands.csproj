@@ -6,6 +6,10 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>bin\Debug\VkNet.Commands.xml</DocumentationFile>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="VkNet" Version="1.78.0" />
     </ItemGroup>

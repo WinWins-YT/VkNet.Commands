@@ -12,6 +12,10 @@ using VkNet.Utils.BotsLongPoll;
 
 namespace VkNet.Commands;
 
+/// <summary>
+/// Процессор команд
+/// </summary>
+/// <param name="configuration">Конфигурация процессора команд</param>
 public class CommandProcessor(CommandsConfiguration configuration)
 {
     private readonly Dictionary<string, (Type, MethodInfo)> _commands = new();
@@ -21,7 +25,11 @@ public class CommandProcessor(CommandsConfiguration configuration)
         [typeof(string)] = new StringConverter(),
         [typeof(int)] = new Int32Converter()
     };
-
+    
+    /// <summary>
+    /// Добавляет класс в котором находятся методы команд
+    /// </summary>
+    /// <typeparam name="T">Тип класса с методами команд</typeparam>
     public void SearchCommandsIn<T>() where T : class
     {
         var type = typeof(T);
@@ -36,6 +44,11 @@ public class CommandProcessor(CommandsConfiguration configuration)
         }
     }
 
+    /// <summary>
+    /// Добавляет конвертор параметров
+    /// </summary>
+    /// <param name="converter">Конвертор параметров</param>
+    /// <typeparam name="T">Тип, к которому приводит конвертор</typeparam>
     public void AddConverter<T>(IParameterConverter<T> converter)
     {
         ArgumentNullException.ThrowIfNull(converter);
@@ -43,6 +56,13 @@ public class CommandProcessor(CommandsConfiguration configuration)
         _parameterConverters[typeof(T)] = converter;
     }
 
+    /// <summary>
+    /// Запуск отслеживания сообщений и выполнения команд
+    /// </summary>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">Если VkApi null</exception>
+    /// <exception cref="InvalidMethodException">Если метод команды неверный</exception>
     public Task StartListening(CancellationToken cancellationToken = default)
     {
         if (configuration.VkApi is null)
