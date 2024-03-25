@@ -1,4 +1,5 @@
 ﻿using VkNet.Commands.Abstractions;
+using VkNet.Commands.Models;
 
 namespace VkNet.Commands.Converters;
 
@@ -11,6 +12,7 @@ public class Int32Converter : IParameterConverter<int>
     /// Конвертирование строки в число
     /// </summary>
     /// <param name="value">Строка</param>
+    /// <param name="command">Параметры команды</param>
     /// <returns>Число</returns>
-    public int Convert(string value) => System.Convert.ToInt32(value);
+    public int Convert(string value, Command command) => System.Convert.ToInt32(value);
 }

@@ -72,6 +72,27 @@ public async Task Square(int number, Message message, IVkApi vkApi)
 
 Команда square с параметром `int number` принимает число, например `/square 5`
 
+Если параметра в сообщении нет, то в метод будет передано null
+
+Для получения параметра, состоящего из нескольких слов, используется атрибут `RemainingText`
+
+Пример:
+```C#
+[Command("sayhello")]
+public async Task SayHello(string name, [RemainingText] string text, Message message, IVkApi vkApi)
+{
+    var userId = message.UserId ?? 0;
+
+    await vkApi.Messages.SendAsync(new MessagesSendParams
+    {
+        PeerId = userId,
+        Message = $"Saying hello to {name} with message: {text}",
+        RandomId = Random.Shared.Next()
+    });
+}
+```
+`/sayhello Nick Let's play some games` в метод будет передано: `name` = Nick, `text` = Let's play some games
+
 ### Конвертеры параметров
 
 Пользователь может самостоятельно писать конвертеры параметров для типов, которые библиотека не может сконвертировать
@@ -81,7 +102,7 @@ public async Task Square(int number, Message message, IVkApi vkApi)
 ```C#
 public class Int32Converter : IParameterConverter<int>
 {
-    public int Convert(string value) => System.Convert.ToInt32(value);
+    public int Convert(string value, Command command) => System.Convert.ToInt32(value);
 }
 ```
 

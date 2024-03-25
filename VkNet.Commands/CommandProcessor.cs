@@ -22,8 +22,8 @@ public class CommandProcessor(CommandsConfiguration configuration)
 
     private readonly Dictionary<Type, IParameterConverter> _parameterConverters = new()
     {
-        [typeof(string)] = new StringConverter(),
-        [typeof(int)] = new Int32Converter()
+        [typeof(int)] = new Int32Converter(),
+        [typeof(int?)] = new NullableConverter<int>()
     };
     
     /// <summary>
@@ -52,8 +52,21 @@ public class CommandProcessor(CommandsConfiguration configuration)
     public void AddConverter<T>(IParameterConverter<T> converter)
     {
         ArgumentNullException.ThrowIfNull(converter);
+        var type = typeof(T);
+        _parameterConverters[type] = converter;
+        
+        var nullableConverterType = typeof(NullableConverter<>).MakeGenericType(type);
+        var nullableType = typeof(Nullable<>).MakeGenericType(type);
+        
+        if (_parameterConverters.ContainsKey(nullableType))
+        {
+            return;
+        }
 
-        _parameterConverters[typeof(T)] = converter;
+        if (Activator.CreateInstance(nullableConverterType) is IParameterConverter nullableConverter)
+        {
+            _parameterConverters[nullableType] = nullableConverter;
+        }
     }
 
     /// <summary>

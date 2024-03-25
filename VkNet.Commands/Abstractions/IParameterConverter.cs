@@ -1,4 +1,6 @@
-﻿namespace VkNet.Commands.Abstractions;
+﻿using VkNet.Commands.Models;
+
+namespace VkNet.Commands.Abstractions;
 
 /// <summary>
 /// Интерфейс для конвертора параметров
@@ -15,6 +17,7 @@ public interface IParameterConverter<out T> : IParameterConverter
     /// Метод конвертации параметра
     /// </summary>
     /// <param name="value">Параметр</param>
+    /// <param name="command">Параметры команды</param>
     /// <returns>Сконвертированный параметр</returns>
-    T Convert(string value);
+    T Convert(string value, Command command);
 }
