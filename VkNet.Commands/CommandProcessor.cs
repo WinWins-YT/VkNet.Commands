@@ -126,8 +126,6 @@ public class CommandProcessor(CommandsConfiguration configuration)
 
                     var commandArgs = CommandParser.GetCommandParameters(_commands[commandText].Item2, messageText,
                         message, configuration.VkApi);
-                    if (commandArgs is null)
-                        throw new InvalidMethodException("Command methods must have Message and IVkApi arguments");
                     
                     command.Item2.Invoke(Activator.CreateInstance(command.Item1), commandArgs);
                 }

@@ -28,7 +28,7 @@ internal static class CommandParser
     /// <param name="vkApi">VkApi для передачи в метод</param>
     /// <returns>Массив параметров метода</returns>
     /// <exception cref="NoParameterConverterException">Если на тип в методе нет конвертора</exception>
-    internal static object?[]? GetCommandParameters(MethodInfo methodInfo, string command, Message message, IVkApi vkApi)
+    internal static object?[] GetCommandParameters(MethodInfo methodInfo, string command, Message message, IVkApi vkApi)
     {
         var parameters = methodInfo.GetParameters();
         var parameterTypes = parameters.Select(x => x.ParameterType).ToArray();
@@ -39,7 +39,7 @@ internal static class CommandParser
         };
 
         if (!parameterTypes.Contains(typeof(Message)) || !parameterTypes.Contains(typeof(IVkApi)))
-            return null;
+            throw new InvalidMethodException("Command methods must have Message and IVkApi arguments");
         
         List<object?> paramList = [];
         var commandArgs = command.Split(' ')[1..];
@@ -66,7 +66,7 @@ internal static class CommandParser
             if (remainingAttribute is not null && parameterType == typeof(string))
             {
                 var remaining = string.Join(' ', commandArgs[commandArgIndex..]);
-                paramList.Add(remaining);
+                paramList.Add(remaining == string.Empty ? null : remaining);
                 continue;
             }
             
