@@ -135,7 +135,7 @@ internal static class CommandParser
         }
         catch (System.Exception ex) when (ex is TargetInvocationException or InvalidCastException)
         {
-            throw ex.InnerException ?? ex;
+            throw new ParameterConverterException($"Could not convert {value} to {type} type", ex.InnerException ?? ex);
         }
     }
 }

@@ -58,12 +58,13 @@ public class CommandParserTests
             }
             catch (System.Exception ex) when (ex is TargetInvocationException or InvalidCastException)
             {
-                throw ex.InnerException ?? ex;
+                ex.InnerException!.InnerException.Should().BeOfType<ArgumentException>();
+                throw ex.InnerException!;
             }
         };
         
         // Assert
-        method.Should().Throw<ArgumentException>();
+        method.Should().Throw<ParameterConverterException>();
     }
 
     [Theory]

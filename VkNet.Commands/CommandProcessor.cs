@@ -123,15 +123,47 @@ public class CommandProcessor(CommandsConfiguration configuration)
                         continue;
                     
                     var command = _commands[commandText];
+                    var commandClass = Activator.CreateInstance(command.Item1);
 
-                    var commandArgs = CommandParser.GetCommandParameters(_commands[commandText].Item2, messageText,
-                        message, configuration.VkApi);
-                    
-                    command.Item2.Invoke(Activator.CreateInstance(command.Item1), commandArgs);
+                    try
+                    {
+                        var commandArgs = CommandParser.GetCommandParameters(_commands[commandText].Item2, messageText,
+                            message, configuration.VkApi);
+
+                        command.Item2.Invoke(commandClass, commandArgs);
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        var commandExceptionArgs = new CommandExceptionArgs
+                        {
+                            FullCommandText = messageText,
+                            CommandException = new CommandException("Command execution caused an exception", ex.InnerException!, commandClass)
+                        };
+                        CommandException?.Invoke(this, commandExceptionArgs);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        var commandExceptionArgs = new CommandExceptionArgs
+                        {
+                            FullCommandText = messageText,
+                            CommandException = ex
+                        };
+                        CommandException?.Invoke(this, commandExceptionArgs);
+                    }
                 }
             }
         });
 
         return longPool.RunAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Хендлер исключения команды
+    /// </summary>
+    public delegate void CommandExceptionEventHandler(object? sender, CommandExceptionArgs e);
+
+    /// <summary>
+    /// Событие, когда исполняемая команда или конвертер параметров вернул исключение
+    /// </summary>
+    public event CommandExceptionEventHandler? CommandException;
 }

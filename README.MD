@@ -113,3 +113,29 @@ commands.AddConverter(new Int32Converter());
 ```
 
 Теперь данный тип можно использовать как аргумент метода команды
+
+### Исключения команд
+
+Для отслеживания исключений команд, есть событие CommandException
+
+```C#
+commands.CommandException += (s, e)
+{
+    if (e.CommandException is CommandException cex)
+    {
+        // Исключение вызвано командой
+        
+        // e.FullCommandText - полный текст команды
+        // cex.InnerException - исключение, которое было брошено командой
+        // cex.CommandClass - объект класса команды
+    }
+    
+    if (e.CommandException is ParameterConverterException pex)
+    {
+        // Исключение вызвано конвертером команд
+        
+        // e.FullCommandText - полный текст команды
+        // cex.InnerException - исключение, которое было брошено конвертером параметров
+    }
+}
+```
