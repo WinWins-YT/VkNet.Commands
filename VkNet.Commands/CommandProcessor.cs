@@ -6,6 +6,7 @@ using VkNet.Commands.Exceptions;
 using VkNet.Commands.Extensions;
 using VkNet.Commands.Models;
 using VkNet.Commands.Parsers;
+using VkNet.Commands.Utilities;
 using VkNet.Enums.StringEnums;
 using VkNet.Model;
 using VkNet.Utils.BotsLongPoll;
@@ -25,6 +26,8 @@ public class CommandProcessor(CommandsConfiguration configuration)
         [typeof(int)] = new Int32Converter(),
         [typeof(int?)] = new NullableConverter<int>()
     };
+
+    private readonly Dictionary<Type, ICommandValidator> _commandValidators = new();
     
     /// <summary>
     /// Добавляет класс в котором находятся методы команд
@@ -68,6 +71,18 @@ public class CommandProcessor(CommandsConfiguration configuration)
             _parameterConverters[nullableType] = nullableConverter;
         }
     }
+    
+    /// <summary>
+    /// Добавляет валидатор команды
+    /// </summary>
+    /// <param name="validator">Валидатор</param>
+    /// <typeparam name="T">Тип атрибута вадидатора</typeparam>
+    public void AddValidator<T>(ICommandValidator<T> validator) where T : CommandValidatorAttribute
+    {
+        ArgumentNullException.ThrowIfNull(validator);
+        var type = typeof(T);
+        _commandValidators[type] = validator;
+    }
 
     /// <summary>
     /// Запуск отслеживания сообщений и выполнения команд
@@ -82,6 +97,7 @@ public class CommandProcessor(CommandsConfiguration configuration)
             throw new ArgumentNullException(nameof(configuration.VkApi), "VkApi cannot be null");
 
         CommandParser.Converters = _parameterConverters;
+        CommandValidator.Validators = _commandValidators;
 
         var longPool = new BotsLongPollUpdatesHandler(new BotsLongPollUpdatesHandlerParams(configuration.VkApi, configuration.GroupId)
         {
@@ -129,6 +145,28 @@ public class CommandProcessor(CommandsConfiguration configuration)
                     {
                         var commandArgs = CommandParser.GetCommandParameters(_commands[commandText].Item2, messageText,
                             message, configuration.VkApi);
+                        
+                        var validators = command.Item2.GetCustomAttributes<CommandValidatorAttribute>(true);
+
+                        foreach (var validator in validators)
+                        {
+                            if (!_commandValidators.TryGetValue(validator.GetType(), out var commandValidator))
+                            {
+                                throw new NoCommandValidatorException($"No command validator provided for {validator.GetType()}");
+                            }
+
+                            try
+                            {
+                                var result = CommandValidator.Validate(commandValidator, validator.GetType(), validator, message,
+                                    commandArgs);
+                                if (!result)
+                                    throw new FailedValidationException("Command validation failed", validator, message);
+                            }
+                            catch (TargetInvocationException ex)
+                            {
+                                throw new CommandValidatorException("Command validator caused an exception", ex.InnerException!);
+                            }
+                        }
 
                         command.Item2.Invoke(commandClass, commandArgs);
                     }
@@ -137,7 +175,7 @@ public class CommandProcessor(CommandsConfiguration configuration)
                         var commandExceptionArgs = new CommandExceptionArgs
                         {
                             FullCommandText = messageText,
-                            CommandException = new CommandException("Command execution caused an exception", ex.InnerException!, commandClass)
+                            CommandException = new CommandException("Command execution caused an exception", ex.InnerException!, commandClass, message)
                         };
                         CommandException?.Invoke(this, commandExceptionArgs);
                     }

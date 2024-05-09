@@ -135,7 +135,79 @@ commands.CommandException += (s, e)
         // Исключение вызвано конвертером команд
         
         // e.FullCommandText - полный текст команды
-        // cex.InnerException - исключение, которое было брошено конвертером параметров
+        // pex.InnerException - исключение, которое было брошено конвертером параметров
     }
 }
+```
+
+### Валидаторы команд
+
+Команды могут проходить проверку перед запуском, например на вызов от администратора
+
+Валидатор состоит из атрибута, который наследуется от `CommandValidatorAttribute` и может содержать некоторые параметры.
+
+Вторая часть это сам валидатор, который наследуется от `ICommandValidator<T>`, где `T` - тип атрибута, наследованного от `CommandValidatorAttribute`
+
+Функция `Validate` должна возвращать `true` при удачной валидации и `false` при неудачной
+
+Пример валидатора, который проверяет год запуска:
+
+```C#
+public class RequireYearValidatorAttribute(int year) : CommandValidatorAttribute
+{
+    public int Year { get; set; } = year;
+}
+
+public class RequireYearValidator : ICommandValidator<RequireYearValidatorAttribute>
+{
+    public bool Validate(RequireYearValidatorAttribute attribute, Message message, params object?[] parameters)
+    { 
+        return DateTime.Now.Year > attribute.Year;
+    }
+}
+```
+
+Затем его необходимо добавить в процессор команд:
+
+```C#
+commands.AddValidator(new RequireYearValidator());
+```
+
+Применение к команде `square`:
+
+```C#
+[Command("square"), RequireYearValidator(2025)]
+public async Task Square(int? number, Message message, IVkApi vkApi)
+{
+    var userId = message.UserId ?? 0;
+    
+    await vkApi.Messages.SendAsync(new MessagesSendParams
+    {
+        PeerId = userId,
+        Message = $"Квадрат числа {number} = {number * number}",
+        RandomId = Random.Shared.Next()
+    });
+}
+```
+
+В данном случае будет проведена проверка, что год запуска больше чем 2025
+
+В случае неудачной валидации будет вызвано исключение `FailedValidationException`, которое можно обработать в `CommandErrored` событии
+
+```C#
+commands.CommandException += (s, e) =>
+{
+    if (e.CommandException is FailedValidationException validationException)
+    {
+        if (validationException.Validator is RequireYearValidatorAttribute)
+        {
+            vk.Messages.Send(new MessagesSendParams
+            {
+                RandomId = new Random().Next(),
+                PeerId = validationException.MessageObject.UserId,
+                Message = "Вы не можете использовать эту команду в настоящее время"
+            });
+        }
+    }
+};
 ```

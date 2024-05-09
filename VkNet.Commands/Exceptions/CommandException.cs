@@ -1,4 +1,6 @@
-﻿namespace VkNet.Commands.Exceptions;
+﻿using VkNet.Model;
+
+namespace VkNet.Commands.Exceptions;
 
 /// <summary>
 /// Исключение команды
@@ -11,13 +13,20 @@ public class CommandException : System.Exception
     public object? CommandClass { get; }
 
     /// <summary>
+    /// Объект сообщения
+    /// </summary>
+    public Message MessageObject { get; set; }
+
+    /// <summary>
     /// Конструктор исключения команды
     /// </summary>
     /// <param name="message">Сообщения об исключении</param>
     /// <param name="inner">Внутреннее исключение</param>
     /// <param name="commandClass">Класс с командой, вызвавшей исключение</param>
-    public CommandException(string message, System.Exception inner, object? commandClass) : base(message, inner)
+    /// <param name="messageObject">Объект сообщения</param>
+    public CommandException(string message, System.Exception inner, object? commandClass, Message messageObject) : base(message, inner)
     {
         CommandClass = commandClass;
+        MessageObject = messageObject;
     }
 }
