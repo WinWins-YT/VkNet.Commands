@@ -4,6 +4,15 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Title>VkNet Commands extension</Title>
+        <Authors>WinWins</Authors>
+        <Description>Extension for VkNet for creating bot commands</Description>
+        <Copyright>DaniMat Corp.</Copyright>
+        <PackageProjectUrl>https://github.com/WinWins-YT/VkNet.Commands</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/WinWins-YT/VkNet.Commands</RepositoryUrl>
+        <PackageTags>vknet, bot</PackageTags>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -12,6 +21,7 @@
 
     <ItemGroup>
       <PackageReference Include="VkNet" Version="1.78.0" />
+        <None Include="..\readme.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>

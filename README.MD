@@ -2,6 +2,8 @@
 
 Расширение для [VkNet](https://github.com/vknet/vk) для создания методов команд бота
 
+Пакет на [Nuget](https://www.nuget.org/packages/VkNet.Commands/1.0.0)
+
 ## Подключение
 
 ### Добавление Commands в VkApi
